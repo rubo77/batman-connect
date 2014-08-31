@@ -1,0 +1,137 @@
+#!/bin/bash
+
+# this script connects as a node in a B.A.T.M.A.N. network.
+# call this script with --help for help
+
+IFACE=wlan0
+ESSID=02:ca:ff:ee:ba:be
+CHANNEL=11
+CELLID=02:ca:ff:ee:ba:be
+NODELINK=http://freifunk.in-kiel.de/ffmap/nodes.html
+# initiating nameserver in your freifunk:
+NAMESERVER=fda1:384a:74de:4242::1
+
+
+if [ "$1" = "hh" ]; then
+  ESSID=f8:d1:11:87:52:2e
+  CHANNEL=1
+  CELLID=f8:d1:11:87:52:2e
+  NODELINK=http://10.130.10.1/ffhh/nodes.html
+fi
+
+channel_map=(XYZZY 2412 2417 2422 2427 2432 2437 2442 2447 2452 2457 2462 2467 2472 2484)
+FREQUENCY=${channel_map[$CHANNEL]}
+
+if [ "$1" = "--help" ]; then
+  echo "[start](default) [stop] or [hh] for connection with the hamburg network"
+  echo to connect to hamburg call this script with option hh
+  echo edit the options in the top section of this script to connect to another network
+  echo your network devices:
+  lspci|grep -i net
+  exit
+fi
+
+NETWORKMANAGER="service network-manager"
+#NETWORKMANAGER="service wicd"
+# some distributions have 
+#NETWORKMANAGER="/etc/init.d/network-manager"
+
+if [ "$(whoami &2>/dev/null)" != "root" ] && [ "$(id -un &2>/dev/null)" != "root" ] ; then
+  echo "You must be root to run this script!"; exit 1
+fi
+
+
+if [ "$1" = "stop" ]; then
+  echo "resuming normal networking..."
+  echo "restart $NETWORKMANAGER"
+  $NETWORKMANAGER restart
+  
+  echo "turn network bridge off"
+  ifconfig br-freifunk down
+  brctl delif br-freifunk bat0
+  brctl delif br-freifunk eth0
+  brctl delbr br-freifunk
+  ifconfig bat0 down -promisc
+  ifconfig eth0 down -promisc
+ 
+  echo "turn wlan iface off"
+  batctl if del $IFACE
+  echo "it can take a few minutes until $NETWORKMANAGER gets a new route"
+  echo
+  exit
+elif [ "$1" = "restart" ]; then
+  "$0" stop 
+  "$0" start
+  exit $?
+else # "start"
+  echo "stopping $NETWORKMANAGER"
+  echo "pls wait about 10 seconds"
+  while true;do echo -n .;sleep 1;done &
+	$NETWORKMANAGER stop
+    sleep 10 # or do something else here
+  kill $!; trap 'kill $!' SIGTERM
+  echo
+  echo "turn wlan iface off"
+  ifconfig $IFACE down
+  echo "set maximal transfer unit from standard 1500 to 1528"
+  ifconfig $IFACE mtu 1528
+  echo "turn wlan encryption off"
+  iwconfig $IFACE enc off
+  echo "start ad-hoc mode"
+  # mit HT40 bei 802.11n kann man potentiell auch mit 40MHz breiten kanälen senden, 
+  # falls da noch platz ist über oder unter jenem kanal und dann am besten noch HT40- statt HT40+ 
+  # das minus oder plus sagt, ob die zusätzlichen 20MHz kanalbreite über oder unter dem gewählten 
+  # kanal benutzt werden sollen
+  #iw dev wlan0 ibss join $ESSID $FREQUENCY fixed-freq HT40- $CELLID
+
+  # in case the iw doesent work, use:
+  iwconfig $IFACE mode ad-hoc essid $ESSID ap $CELLID channel $CHANNEL
+  
+  echo "load module into kernel"
+  modprobe batman-adv
+  echo "adding iface to batman"
+  batctl if add $IFACE
+  echo "turn wlan iface on"
+  ifconfig $IFACE up
+  echo "turn batman iface on"
+  ifconfig bat0 up
+  echo "ESSID $ESSID on $IFACE should be ready"
+  #sollte man eigentlich machen, geht aber nicht:
+  #batctl gw client
+  
+  echo "optional starting bridge to share internet connection over eth0 (if eth0 exists)"
+  ifconfig eth0 up promisc
+ 
+  brctl addbr br-freifunk
+  brctl addif br-freifunk bat0
+  brctl addif br-freifunk eth0
+  
+  echo "internet starting, this may take some minutes due to latency..."
+  echo "The message 'Rather than invoking init scripts through /etc/init.d...' can be ignored in the following"
+  echo "-------------------------------------"
+  echo "tail -f -n 1 /var/log/syslog|grep freifunk"
+  tail -f -n 1 /var/log/syslog|grep freifunk &
+  echo dhclient br-freifunk
+  dhclient br-freifunk
+  # without bridge: dhclient bat0
+  ifconfig|grep '10\.'
+  killall tail
+  echo "------------------------------------- end of syslog"
+if [ "$1" != "hh" ]; then
+  
+  echo "Optional: You can add a nameserver $NAMESERVER to /etc/resolv.conf"
+  echo "nameserver $NAMESERVER">>/etc/resolv.conf
+fi
+
+  echo "internet connection IP:"
+  ifconfig|grep Bcast
+  echo you should have an IP like 10.x.x.x
+  echo "after a minute your node should popup on the nodeGraph here $NODELINK"
+  echo
+  echo you can connect another device on eth0 if you like. there will be internet available via cable
+  echo "if you use network-manager (ubuntu) you will have to set ipv6 method to \"ignore\""
+  echo see http://freifunk.in-kiel.de/wiki/Ubuntu
+  echo 
+  echo "to resume normal networking call this script with option stop"
+  echo
+fi
