@@ -4,27 +4,45 @@
 # call this script with --help for help
 
 IFACE=wlan0
+
+######## default config:
 ESSID=02:ca:ff:ee:ba:be
 CHANNEL=11
 CELLID=02:ca:ff:ee:ba:be
 NODELINK=http://freifunk.in-kiel.de/ffmap/nodes.html
 # initiating nameserver in your freifunk:
 NAMESERVER=fda1:384a:74de:4242::1
+#########################
 
+if [ "$1" = "ffhl" ] || [  "$1" == "" ]; then
+  #### default
+  ESSID=mesh.freifunk.net
+  CHANNEL=1
+  CELLID=02:22:B0:44:94:5D
+  NODELINK=http://luebeck.freifunk.net/map/nodes.html
+fi
 
-if [ "$1" = "hh" ]; then
+if [ "$1" = "ffhh" ]; then
   ESSID=f8:d1:11:87:52:2e
   CHANNEL=1
   CELLID=f8:d1:11:87:52:2e
-  NODELINK=http://10.130.10.1/ffhh/nodes.html
+  NODELINK=http://hamburg.freifunk.net/nodes_ffhh/nodes.html
+fi
+
+if [ "$1" = "ffki" ]; then
+  ESSID=02:ca:ff:ee:ba:be
+  CHANNEL=11
+  CELLID=02:ca:ff:ee:ba:be
+  NODELINK=http://freifunk.in-kiel.de/ffmap/nodes.html
+  NAMESERVER=fda1:384a:74de:4242::1
 fi
 
 channel_map=(XYZZY 2412 2417 2422 2427 2432 2437 2442 2447 2452 2457 2462 2467 2472 2484)
 FREQUENCY=${channel_map[$CHANNEL]}
 
 if [ "$1" = "--help" ]; then
-  echo "[start](default) [stop] or [hh] for connection with the hamburg network"
-  echo to connect to hamburg call this script with option hh
+  echo "[start](default) [stop] [ffhl] [ffki] or [ffhh] for connection with the other networks"
+  echo to connect to hamburg call this script with option ffhh
   echo edit the options in the top section of this script to connect to another network
   echo your network devices:
   lspci|grep -i net
@@ -32,8 +50,9 @@ if [ "$1" = "--help" ]; then
 fi
 
 NETWORKMANAGER="service network-manager"
-#NETWORKMANAGER="service wicd"
 # some distributions have 
+#NETWORKMANAGER="service wicd"
+# or
 #NETWORKMANAGER="/etc/init.d/network-manager"
 
 if [ "$(whoami &2>/dev/null)" != "root" ] && [ "$(id -un &2>/dev/null)" != "root" ] ; then
@@ -117,7 +136,7 @@ else # "start"
   ifconfig|grep '10\.'
   killall tail
   echo "------------------------------------- end of syslog"
-if [ "$1" != "hh" ]; then
+if [ "$1" == "ffki" ]; then
   
   echo "Optional: You can add a nameserver $NAMESERVER to /etc/resolv.conf"
   echo "nameserver $NAMESERVER">>/etc/resolv.conf
