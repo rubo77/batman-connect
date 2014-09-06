@@ -1,11 +1,34 @@
 #!/bin/bash
-
 # this script connects as a node in a B.A.T.M.A.N. network.
 # call this script with --help for help
 
+VERSION="1.0"
+
+#--------- installation --------------#
+# copy this script into a folder that is in your PATH variable and give it executable rights, for example:
+# cp batman-connect /use/local/bin/
+# chmod +x /use/local/bin/batman-connect
+
+#-------------- Author:  -------------#
+# by Ruben Barkow (Rubo77)
+# git: 		https://github.com/ffnord/batman-connect
+
+#--- Copyright and license -----------#
+#This code is covered by the GNU General Public License 3.
+
+# ---------- configuration -----------#
+# adapt these to our needs
+# If you don't change it it will connect to ffhl on your network card wlan0
 IFACE=wlan0
 
-######## default config:
+NETWORKMANAGER="service network-manager"
+# some distributions have 
+#NETWORKMANAGER="service wicd"
+# or
+#NETWORKMANAGER="/etc/init.d/network-manager"
+
+######## default config if no community is set (ffhl):
+COMMUNITY="ffhl"
 ESSID=02:ca:ff:ee:ba:be
 CHANNEL=11
 CELLID=02:ca:ff:ee:ba:be
@@ -14,7 +37,136 @@ NODELINK=http://freifunk.in-kiel.de/ffmap/nodes.html
 NAMESERVER=fda1:384a:74de:4242::1
 #########################
 
-if [ "$1" = "ffhl" ] || [  "$1" == "" ]; then
+# -------- end of configuration -------#
+
+
+VERBOSE=false
+
+# Execute getopt on the arguments passed to this program, identified by the special character $@
+PARSED_OPTIONS=$(getopt -n "$0"  -o hsrvVi:c: --long "help,start,restart,stop,verbose,vv,version,interface:,community:"  -- "$@")
+
+#Bad arguments, something has gone wrong with the getopt command.
+if [ $? -ne 0 ]; then
+  exit 1
+fi
+
+# A little magic, necessary when using getopt.
+eval set -- "$PARSED_OPTIONS"
+
+# Now go through all options with a case and using shift to analyse one argument at a time.
+# $1 identifies the first argument, and when we use shift we discard the first argument, 
+# so $2 becomes $1 and goes again through the case.
+while true; do
+  case "$1" in
+
+    -h|--help)
+      echo "
+
+  NAME:
+
+    batman-connect
+
+  DESCRIPTION:
+
+    this script sets the mouse- and touchpad accelleration speed 
+    to a relative percentage of the previous speed or to a certain absolute percentage
+
+  GLOBAL OPTIONS:
+    
+    Mandatory arguments to long options are mandatory for short options too.
+    
+    -c, --community
+        choose from ffhh, ffhl, ffki
+        edit the options in the COMMUNITY section of this script to connect to another network
+    -i, interface
+        interface that should be used for mesh
+    -h, --help 
+        Display help documentation
+    -s, --stop
+        resume normal networking
+    -V, --version 
+        Display version information
+    -v, --verbose
+        more verbose output
+    --vv
+        even more verbose (for debugging onny)
+   
+  USAGE EXAMPLES:
+      
+    # connect to hamburg community on interface en0:
+    batman-connect -c ffhh -i en0
+
+    # restart normal networking
+    batman-connect stop
+    
+  DEVELOPER INFO
+  
+    requires the packages batctl bridge-utils
+    and batman-adv-dkms from the repository http://repo.universe-factory.net/debian/ sid main
+    (see README.md)
+
+    This procect on git:        https://github.com/ffnord/batman-connect
+"
+      echo your network interfacee:
+      lspci|grep -i net
+      LANG=c ifconfig |grep Link|grep -v Loopback
+      exit
+      shift;;
+
+    -V|--version)
+      echo "batman-connect $VERSION"
+      exit 
+      shift;;
+
+    -s|--stop)
+      ACTION=stop
+      shift;;
+
+    --start)
+      ACTION=start
+      shift;;
+    
+    -r|--restart)
+      ACTION=restart
+      shift;;
+    
+    -c|--community)
+      if [ -n "$2" ]; then
+        let COMMUNITY=$2
+      else
+        echo "Missing argument at option --community"
+      fi
+      shift 2;;
+    
+    -i|--interface)
+      if [ -n "$2" ]; then
+        let IFACE=$2
+      else
+        echo "Missing argument at option --interface"
+      fi
+      shift 2;;
+
+    -v|--verbose)
+      VERBOSE=true
+      echo starting in verbose mode
+      set -x
+      PS4="executing: "
+      shift;;
+
+    --vv)
+      # very verbose for debugging
+      VERBOSE=true
+      set -x
+      shift;;
+
+    --)
+      shift
+      break;;
+  esac
+done
+
+###### COMMUNITY section ###############
+if [ "$COMMUNITY" = "ffhl" ] || [  "$COMMUNITY" == "" ]; then
   #### default
   ESSID=mesh.freifunk.net
   CHANNEL=1
@@ -22,45 +174,36 @@ if [ "$1" = "ffhl" ] || [  "$1" == "" ]; then
   NODELINK=http://luebeck.freifunk.net/map/nodes.html
 fi
 
-if [ "$1" = "ffhh" ]; then
+if [ "$COMMUNITY" = "ffhh" ]; then
   ESSID=f8:d1:11:87:52:2e
   CHANNEL=1
   CELLID=f8:d1:11:87:52:2e
   NODELINK=http://hamburg.freifunk.net/nodes_ffhh/nodes.html
 fi
 
-if [ "$1" = "ffki" ]; then
+if [ "$COMMUNITY" = "ffki" ]; then
   ESSID=02:ca:ff:ee:ba:be
   CHANNEL=11
   CELLID=02:ca:ff:ee:ba:be
   NODELINK=http://freifunk.in-kiel.de/ffmap/nodes.html
   NAMESERVER=fda1:384a:74de:4242::1
 fi
+##########################################
 
+# get frequency from channel
 channel_map=(XYZZY 2412 2417 2422 2427 2432 2437 2442 2447 2452 2457 2462 2467 2472 2484)
 FREQUENCY=${channel_map[$CHANNEL]}
-
-if [ "$1" = "--help" ]; then
-  echo "[start](default) [stop] [ffhl] [ffki] or [ffhh] for connection with the other networks"
-  echo to connect to hamburg call this script with option ffhh
-  echo edit the options in the top section of this script to connect to another network
-  echo your network devices:
-  lspci|grep -i net
-  exit
-fi
-
-NETWORKMANAGER="service network-manager"
-# some distributions have 
-#NETWORKMANAGER="service wicd"
-# or
-#NETWORKMANAGER="/etc/init.d/network-manager"
 
 if [ "$(whoami &2>/dev/null)" != "root" ] && [ "$(id -un &2>/dev/null)" != "root" ] ; then
   echo "You must be root to run this script!"; exit 1
 fi
 
+# check if eth0 exists
+LAN_IFACE=""
+if [ "$(ifconfig eth0)" ]; then LAN_IFACE=eth0; fi
 
-if [ "$1" = "stop" ]; then
+
+if [ "$ACTION" = "stop" ]; then
   echo "resuming normal networking..."
   echo "restart $NETWORKMANAGER"
   $NETWORKMANAGER restart
@@ -68,21 +211,23 @@ if [ "$1" = "stop" ]; then
   echo "turn network bridge off"
   ifconfig br-freifunk down
   brctl delif br-freifunk bat0
-  brctl delif br-freifunk eth0
+  if [ LAN_IFACE = "eth0" ]; then
+    brctl delif br-freifunk $LAN_IFACE
+  fi
   brctl delbr br-freifunk
   ifconfig bat0 down -promisc
-  ifconfig eth0 down -promisc
+  ifconfig $LAN_IFACE down -promisc
  
   echo "turn wlan iface off"
   batctl if del $IFACE
   echo "it can take a few minutes until $NETWORKMANAGER gets a new route"
   echo
   exit
-elif [ "$1" = "restart" ]; then
-  "$0" stop 
-  "$0" start
+elif [ "$ACTION" = "restart" ]; then
+  "$0" stop -d $IFACE
+  "$0" start -d $IFACE -c $COMMUNITY
   exit $?
-else # "start"
+else # $ACTION = "start"
   echo "stopping $NETWORKMANAGER"
   echo "pls wait about 10 seconds"
   while true;do echo -n .;sleep 1;done &
@@ -118,16 +263,22 @@ else # "start"
   #sollte man eigentlich machen, geht aber nicht:
   #batctl gw client
   
-  echo "optional starting bridge to share internet connection over eth0 (if eth0 exists)"
-  ifconfig eth0 up promisc
- 
+  if [ LAN_IFACE = "eth0" ]; then
+    echo "starting bridge to share internet connection over eth0 (if eth0 exists)"
+    ifconfig $LAN_IFACE up promisc
+  fi
+  
   brctl addbr br-freifunk
   brctl addif br-freifunk bat0
-  brctl addif br-freifunk eth0
+  if [ LAN_IFACE = "eth0" ]; then
+    brctl addif br-freifunk $LAN_IFACE
+  fi
   
   echo "internet starting, this may take some minutes due to latency..."
   echo "The message 'Rather than invoking init scripts through /etc/init.d...' can be ignored in the following"
   echo "-------------------------------------"
+  echo starting to show the output of syslog until dhclient will give you an IP
+  echo "if you don't get any IP this will continue forever and you should exit with CTRL+C"
   echo "tail -f -n 1 /var/log/syslog|grep freifunk"
   tail -f -n 1 /var/log/syslog|grep freifunk &
   echo dhclient br-freifunk
@@ -136,18 +287,17 @@ else # "start"
   ifconfig|grep '10\.'
   killall tail
   echo "------------------------------------- end of syslog"
-if [ "$1" == "ffki" ]; then
-  
-  echo "Optional: You can add a nameserver $NAMESERVER to /etc/resolv.conf"
-  echo "nameserver $NAMESERVER">>/etc/resolv.conf
-fi
+  if [ "$COMMUNITY" == "ffki" ]; then
+    echo "Optional: You can add a nameserver $NAMESERVER to /etc/resolv.conf"
+    echo "nameserver $NAMESERVER">>/etc/resolv.conf
+  fi
 
   echo "internet connection IP:"
   ifconfig|grep Bcast
   echo you should have an IP like 10.x.x.x
-  echo "after a minute your node should popup on the nodeGraph here $NODELINK"
+  echo "after a minute your node should popup on the nodeGraph here: $NODELINK"
   echo
-  echo you can connect another device on eth0 if you like. there will be internet available via cable
+  echo you can connect another device on interface eth0 if you like. there will be internet available via cable
   echo "if you use network-manager (ubuntu) you will have to set ipv6 method to \"ignore\""
   echo see http://freifunk.in-kiel.de/wiki/Ubuntu
   echo 
