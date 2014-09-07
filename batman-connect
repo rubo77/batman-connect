@@ -39,8 +39,17 @@ NAMESERVER=fda1:384a:74de:4242::1
 
 # -------- end of configuration -------#
 
-
 VERBOSE=false
+
+
+if [ $# = 1 ]; then
+  # If there is only one argument, the community can be the only option directly like
+  # batman-connect ffki
+  echo "calling this script with the option -c:"
+  echo "$0" -c $@
+  "$0" -c $@
+  exit $?
+fi
 
 # Execute getopt on the arguments passed to this program, identified by the special character $@
 PARSED_OPTIONS=$(getopt -n "$0"  -o hsrvVi:c: --long "help,start,restart,stop,verbose,vv,version,interface:,community:"  -- "$@")
@@ -197,6 +206,10 @@ FREQUENCY=${channel_map[$CHANNEL]}
 if [ "$(whoami &2>/dev/null)" != "root" ] && [ "$(id -un &2>/dev/null)" != "root" ] ; then
   echo "You must be root to run this script!"; exit 1
 fi
+
+echo '**********************************************************'
+echo "connecting to community $COMMUNITY on channel $CHANNEL, $ESSID, $CELLID, interface $IFACE"
+echo '**********************************************************'
 
 # check if eth0 exists
 LAN_IFACE=""
