@@ -40,10 +40,10 @@ NAMESERVER=fda1:384a:74de:4242::1
 # -------- end of configuration -------#
 
 VERBOSE=false
+ACTION=start
 
-
-if [ $# = 1 ]; then
-  # If there is only one argument, replace the current process with the new invocation of the script
+if [ $# -eq 1 -a $1 == "ffki" ]; then
+  # If there is only one argument ffki, replace the current process with the new invocation of the script
   # the only option will be used as -c option
   # the community can be the only option directly like
   # $ batman-connect ffki
@@ -179,7 +179,7 @@ while true; do
 done
 
 ###### COMMUNITY section ###############
-if [ "$COMMUNITY" = "ffhl" ] || [  "$COMMUNITY" = "" ]; then
+if [ "$COMMUNITY" == "ffhl" ] || [ "$COMMUNITY" == "" ]; then
   #### default
   ESSID=mesh.freifunk.net
   CHANNEL=1
@@ -187,14 +187,14 @@ if [ "$COMMUNITY" = "ffhl" ] || [  "$COMMUNITY" = "" ]; then
   NODELINK=http://luebeck.freifunk.net/map/nodes.html
 fi
 
-if [ "$COMMUNITY" = "ffhh" ]; then
+if [ "$COMMUNITY" == "ffhh" ]; then
   ESSID=f8:d1:11:87:52:2e
   CHANNEL=1
   CELLID=f8:d1:11:87:52:2e
   NODELINK=http://hamburg.freifunk.net/nodes_ffhh/nodes.html
 fi
 
-if [ "$COMMUNITY" = "ffki" ]; then
+if [ "$COMMUNITY" == "ffki" ]; then
   ESSID=02:ca:ff:ee:ba:be
   CHANNEL=11
   CELLID=02:ca:ff:ee:ba:be
@@ -211,17 +211,16 @@ if [ "$(whoami &2>/dev/null)" != "root" ] && [ "$(id -un &2>/dev/null)" != "root
   echo "You must be root to run this script!"; exit 1
 fi
 
-echo '**********************************************************'
-echo "connecting to community $COMMUNITY on channel $CHANNEL, $ESSID, $CELLID, interface $IFACE"
-echo '**********************************************************'
-
 # check if eth0 exists
 LAN_IFACE=""
 if [ "$(ifconfig eth0)" ]; then LAN_IFACE=eth0; fi
 
-if [ "$ACTION" = "stop" ]; then
+if [ "$ACTION" == "stop" ]; then
+  echo '**********************************************************'
+  echo "$ACTION connection on interface $IFACE"
+  echo '**********************************************************'
   echo "resuming normal networking..."
-  echo "restart $NETWORKMANAGER"
+  echo "$NETWORKMANAGER restart"
   $NETWORKMANAGER restart
   
   echo "turn network bridge off"
@@ -237,17 +236,26 @@ if [ "$ACTION" = "stop" ]; then
   echo "turn wlan iface off"
   batctl if del $IFACE
   echo "it can take a few minutes until $NETWORKMANAGER gets a new route"
-  echo
-  exit
-elif [ "$ACTION" = "restart" ]; then
-  "$0" stop -d $IFACE
-  "$0" start -d $IFACE -c $COMMUNITY
+  sleep 5
+  echo "you can check connection with 'watch -d ifconfig'"
+  exit 0
+elif [ "$ACTION" == "restart" ]; then
+  echo '**********************************************************'
+  echo "$ACTION"
+  echo '**********************************************************'
+  "$0" --stop -i $IFACE
+  "$0" --start -i $IFACE -c $COMMUNITY
+  echo "restart done"
   exit $?
-else # $ACTION = "start"
+else # $ACTION == "start"
+  echo '**********************************************************'
+  echo "$ACTION connecting to community $COMMUNITY on channel $CHANNEL, $ESSID, $CELLID, interface $IFACE"
+  echo '**********************************************************'
+  
   echo "stopping $NETWORKMANAGER"
   echo "pls wait about 10 seconds"
   while true;do echo -n .;sleep 1;done &
-	$NETWORKMANAGER stop
+    $NETWORKMANAGER stop
     sleep 10 # or do something else here
   kill $!; trap 'kill $!' SIGTERM
   echo
@@ -279,14 +287,14 @@ else # $ACTION = "start"
   #sollte man eigentlich machen, geht aber nicht:
   #batctl gw client
   
-  if [ LAN_IFACE = "eth0" ]; then
+  if [ "$LAN_IFACE" == "eth0" ]; then
     echo "starting bridge to share internet connection over eth0 (if eth0 exists)"
     ifconfig $LAN_IFACE up promisc
   fi
   
   brctl addbr br-freifunk
   brctl addif br-freifunk bat0
-  if [ LAN_IFACE = "eth0" ]; then
+  if [ "$LAN_IFACE" == "eth0" ]; then
     brctl addif br-freifunk $LAN_IFACE
   fi
   
@@ -308,7 +316,7 @@ else # $ACTION = "start"
   ifconfig|grep '10\.'
   killall tail
   echo "------------------------------------- end of syslog"
-  if [ "$COMMUNITY" = "ffki" ]; then
+  if [ "$COMMUNITY" == "ffki" ]; then
     echo "Optional: You can add a nameserver $NAMESERVER to /etc/resolv.conf"
     echo "nameserver $NAMESERVER">>/etc/resolv.conf
   fi
