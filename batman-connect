@@ -87,14 +87,18 @@ while true; do
     -c, --community
         choose from ffhh, ffhl, ffki
         edit the options in the COMMUNITY section of this script to connect to another network
-    -i, interface
+    -i, --interface
         interface that should be used for mesh
     -h, --help 
-        Display help documentation
+        Display this help documentation
+    -r, --restart
+        resume normal networking and then start batman again
+    --start
+        obligatory default
     -s, --stop
         resume normal networking
     -V, --version 
-        Display version information
+        Display version information and quit
     -v, --verbose
         more verbose output
     --vv
@@ -106,7 +110,7 @@ while true; do
     batman-connect -c ffhh -i en0
 
     # restart normal networking
-    batman-connect stop
+    sudo batman-connect -c ffki --stop
     
   DEVELOPER INFO
   
@@ -289,8 +293,13 @@ else # $ACTION = "start"
   echo "internet starting, this may take some minutes due to latency..."
   echo "The message 'Rather than invoking init scripts through /etc/init.d...' can be ignored in the following"
   echo "-------------------------------------"
-  echo starting to show the output of syslog until dhclient will give you an IP
-  echo "if you don't get any IP this will continue forever and you should exit with CTRL+C"
+  echo "starting to show the output of syslog until dhclient will give you an IP..."
+  echo 
+  echo "if you don't get any IP this will continue forever and you should"
+  echo "exit with CTRL+C and then 'sudo killall tail'"
+  echo "You can now connect to all freifunk nodes within reach with the link-local IP6, for example:"
+  echo "ssh root@fe80::6666:b3ff:fe11:ffee%br-freifunk"
+  echo
   echo "tail -f -n 1 /var/log/syslog|grep freifunk"
   tail -f -n 1 /var/log/syslog|grep freifunk &
   echo dhclient br-freifunk
