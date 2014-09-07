@@ -29,7 +29,7 @@ NETWORKMANAGER="service network-manager"
 
 ######## default config if no community is set (ffhl):
 COMMUNITY="ffhl"
-ESSID=02:ca:ff:ee:ba:be
+ESSID=mesh.freifunk.net
 CHANNEL=11
 CELLID=02:ca:ff:ee:ba:be
 NODELINK=http://freifunk.in-kiel.de/ffmap/nodes.html
@@ -43,12 +43,12 @@ VERBOSE=false
 
 
 if [ $# = 1 ]; then
-  # If there is only one argument, the community can be the only option directly like
-  # batman-connect ffki
+  # If there is only one argument, replace the current process with the new invocation of the script
+  # the only option will be used as -c option
+  # the community can be the only option directly like
+  # $ batman-connect ffki
   echo "calling this script with the option -c:"
-  echo "$0" -c $@
-  "$0" -c $@
-  exit $?
+  exec "$0" -c "$@"
 fi
 
 # Execute getopt on the arguments passed to this program, identified by the special character $@
@@ -141,7 +141,7 @@ while true; do
     
     -c|--community)
       if [ -n "$2" ]; then
-        let COMMUNITY=$2
+        COMMUNITY="$2"
       else
         echo "Missing argument at option --community"
       fi
@@ -149,7 +149,7 @@ while true; do
     
     -i|--interface)
       if [ -n "$2" ]; then
-        let IFACE=$2
+        IFACE="$2"
       else
         echo "Missing argument at option --interface"
       fi
@@ -175,7 +175,7 @@ while true; do
 done
 
 ###### COMMUNITY section ###############
-if [ "$COMMUNITY" = "ffhl" ] || [  "$COMMUNITY" == "" ]; then
+if [ "$COMMUNITY" = "ffhl" ] || [  "$COMMUNITY" = "" ]; then
   #### default
   ESSID=mesh.freifunk.net
   CHANNEL=1
@@ -214,7 +214,6 @@ echo '**********************************************************'
 # check if eth0 exists
 LAN_IFACE=""
 if [ "$(ifconfig eth0)" ]; then LAN_IFACE=eth0; fi
-
 
 if [ "$ACTION" = "stop" ]; then
   echo "resuming normal networking..."
@@ -300,7 +299,7 @@ else # $ACTION = "start"
   ifconfig|grep '10\.'
   killall tail
   echo "------------------------------------- end of syslog"
-  if [ "$COMMUNITY" == "ffki" ]; then
+  if [ "$COMMUNITY" = "ffki" ]; then
     echo "Optional: You can add a nameserver $NAMESERVER to /etc/resolv.conf"
     echo "nameserver $NAMESERVER">>/etc/resolv.conf
   fi
