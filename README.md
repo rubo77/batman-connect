@@ -39,14 +39,14 @@ Wenn du den Fehler erhälst
 	You may override by specifying --force.
 
 
-Dann muss dkms mit `--force` aufgerufen werden (bis dies gefixt ist).  
-Fenn --force auch nicht hilft, dann muss das Modul von Hand kopiert werden ([TAB] für jeweils den aktuellen Kernel):
+Dann müsste dkms mit `--force` aufgerufen werden, da dies aber zur zeit auch nicht hilft, 
+muss bis dies gefixt ist das Modul von Hand kopiert werden:
 
-	sudo cp /var/lib/dkms/batman-adv/kernel-[TAB]/module/batman-adv.ko /lib/modules/3.[TAB]-generic/kernel/net/batman-adv/batman-adv.ko
+	sudo cp /var/lib/dkms/batman-adv/kernel-$(uname -r)-$(uname -i)/module/batman-adv.ko /lib/modules/$(uname -r)/kernel/net/batman-adv/batman-adv.ko
 
 Achtung
 ---
-Dies muss nach jedem Kernel-update neu ausgeführt werden, da die Datei `/lib/modules/3.[TAB]-generic/kernel/net/batman-adv/batman-adv.ko` jedes mal neu überschrieben wird.
+Dies muss nach jedem Kernel-update neu ausgeführt werden, da die Datei `/lib/modules/$(uname -r)/kernel/net/batman-adv/batman-adv.ko` jedes mal neu überschrieben wird.
 
 Kernelmodul laden
 ===
@@ -67,11 +67,11 @@ Du brauchst **genau die Version 2013.4.0**:
 Start-Script erstellen
 ===
 
-Um sich mit der ESSID <code>02:ca:ff:ee:ba:be</code> auf der Schnittstelle wlan0 mit der [[bssid]] <code>02:ca:ff:ee:ba:be</code> zu verbinden erstelle folgendes script und nenne es <br>
+Um sich mit der *ESSID* `02:ca:ff:ee:ba:be` auf der Schnittstelle `wlan0` mit der *BSSID* `02:ca:ff:ee:ba:be` zu verbinden erstelle folgendes script und nenne es <br>
 
-    /usr/local/bin/batman-connect`</code>
+    /usr/local/bin/batman-connect
 
-[https://raw.githubusercontent.com/ffnord/batman-connect/master/batman-connect download script]
+[download script](https://raw.githubusercontent.com/ffnord/batman-connect/master/batman-connect)
 
 Achtung
 ---
