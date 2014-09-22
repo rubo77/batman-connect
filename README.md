@@ -80,3 +80,7 @@ Dieses Script ist noch experimentell: Ein Fehler ist, dass es nur einmal funktio
     batman-connect stop
     
 aber meist funktioniert ein erneutes Verbinden erst nach einem Rechner neustart
+
+Alfred installieren
+===
+http://askubuntu.com/a/426305/34298

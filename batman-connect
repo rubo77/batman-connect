@@ -27,14 +27,8 @@ NETWORKMANAGER="service network-manager"
 # or
 #NETWORKMANAGER="/etc/init.d/network-manager"
 
-######## default config if no community is set (ffhl):
-COMMUNITY="ffhl"
-ESSID=mesh.freifunk.net
-CHANNEL=11
-CELLID=02:ca:ff:ee:ba:be
-NODELINK=http://freifunk.in-kiel.de/ffmap/nodes.html
-# initiating nameserver in your freifunk:
-NAMESERVER=fda1:384a:74de:4242::1
+######## default config if no community is set:
+COMMUNITY="ffki"
 #########################
 
 # -------- end of configuration -------#
@@ -120,7 +114,7 @@ while true; do
 
     This procect on git:        https://github.com/ffnord/batman-connect
 "
-      echo your network interfacee:
+      echo your network interface:
       lspci|grep -i net
       LANG=c ifconfig |grep Link|grep -v Loopback
       exit
@@ -199,6 +193,7 @@ if [ "$COMMUNITY" == "ffki" ]; then
   CHANNEL=11
   CELLID=02:ca:ff:ee:ba:be
   NODELINK=http://freifunk.in-kiel.de/ffmap/nodes.html
+  #optional for faster connect:
   NAMESERVER=fda1:384a:74de:4242::1
 fi
 ##########################################
@@ -208,7 +203,7 @@ channel_map=(XYZZY 2412 2417 2422 2427 2432 2437 2442 2447 2452 2457 2462 2467 2
 FREQUENCY=${channel_map[$CHANNEL]}
 
 if [ "$(whoami &2>/dev/null)" != "root" ] && [ "$(id -un &2>/dev/null)" != "root" ] ; then
-  echo "You must be root to run this script!"; exit 1
+  echo "You must be root to run this script!"; echo "use 'sudo !!'"; exit 1
 fi
 
 # check if eth0 exists
