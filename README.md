@@ -16,37 +16,8 @@ Außerdem konfiguriert dieses Script den eth0-Ausgang so um (wenn vorhanden), da
 Installation
 ===
 
-Es werden die Pakete `batctl` für batman-adv und `bridge-utils` für `brctl`
-
-    sudo apt-get install batctl bridge-utils
-
-Neuere Batman Version aus Repo
-===
-
-Erstelle die Datei `/etc/apt/sources.list.d/batman-adv-universe-factory.net.list` mit dem repository https://projects.universe-factory.net/projects/fastd/wiki für die neueste version:
  
-	sudo bash -c 'echo "deb http://repo.universe-factory.net/debian/ sid main">/etc/apt/sources.list.d/batman-adv-universe-factory.net.list'
-	gpg --recv-keys 0x16EF3F64CB201D9C
-	gpg --export 0x16EF3F64CB201D9C|sudo apt-key add -
-	# TODO: Hier sollte man aus Sicherheitsaspekten noch den Fingerprint auf Korrektheit überprüfen
-	sudo apt-get update
-	sudo apt-get install batman-adv-dkms
-
-Wenn du den Fehler erhälst
-
-	Error! Module version 2013.4.0 for batman-adv.ko
-	is not newer than what is already found in kernel 3.14.1-031401-generic (2014.1.0).
-	You may override by specifying --force.
-
-
-Dann müsste dkms mit `--force` aufgerufen werden, da dies aber zur zeit auch nicht hilft, 
-muss bis dies gefixt ist das Modul von Hand kopiert werden:
-
-	sudo cp /var/lib/dkms/batman-adv/kernel-$(uname -r)-$(uname -i)/module/batman-adv.ko /lib/modules/$(uname -r)/kernel/net/batman-adv/batman-adv.ko
-
-Achtung
----
-Dies muss nach jedem Kernel-update neu ausgeführt werden, da die Datei `/lib/modules/$(uname -r)/kernel/net/batman-adv/batman-adv.ko` jedes mal neu überschrieben wird.
+    fastd-install.sh
 
 Kernelmodul laden
 ===
