@@ -7,7 +7,7 @@ German README
 =============
 
 So einfach kann man seinen Laptop in das Freifunk-Netz als Knoten mit integrieren.
-(Unter Ubuntu 12.04 bis erfolgreich 14.04 getestet)
+(Unter Ubuntu 12.04 bis erfolgreich 15.10 getestet)
 
 *TODO: unter arch lässt sich das batman kernel-Modul nicht einfach kompilieren*
 
@@ -69,18 +69,50 @@ Start-Script erstellen
 
 Um sich mit der *ESSID* `02:ca:ff:ee:ba:be` auf der Schnittstelle `wlan0` mit der *BSSID* `02:ca:ff:ee:ba:be` zu verbinden erstelle folgendes script und nenne es <br>
 
-    /usr/local/bin/batman-connect
+    cd /usr/local/bin
+    sudo wget https://raw.githubusercontent.com/ffnord/batman-connect/master/batman-connect
+    sudo chmod +x batman-connect
 
-[download script](https://raw.githubusercontent.com/ffnord/batman-connect/master/batman-connect)
+Alfred installieren
+===
+Alfred.json installieren
 
-Achtung
+    cd /tmp
+    git clone https://github.com/tcatm/alfred-json.git
+    cd alfred-json
+    sudo apt-get install libjansson-dev cmake
+    cmake .
+    make
+    sudo make install
+    
+Alfred Deamon und batadv-vis installieren (64 Bit)
+
+    cd /tmp
+    wget http://debian.draic.info/pool/main/a/alfred/alfred_2014.3.0-11_amd64.deb
+    wget http://debian.draic.info/pool/main/a/alfred/batadv-vis_2014.3.0-11_amd64.deb
+    sudo dpkg -i alfred_2014.3.0-11_amd64.deb
+    sudo dpkg -i batadv-vis_2014.3.0-11_amd64.deb
+
+ODER
+
+Alfred Deamon und batadv-vis installieren (32 Bit)
+
+    cd /tmp
+    wget https://github.com/rubo77/alfred-repository/raw/master/alfred_2014.3.0-11_i386.deb
+    wget https://github.com/rubo77/alfred-repository/raw/master/batadv-vis_2014.3.0-11_i386.deb
+    sudo dpkg -i alfred_2014.3.0-11_i386.deb
+    sudo dpkg -i batadv-vis_2014.3.0-11_i386.deb
+
+Start-Script ausführen
+===
+ Terminal öffnen und das Start-script ausführen
+
+    sudo bash /usr/local/bin/batman-connect
+
+ Achtung
 ---
 Dieses Script ist noch experimentell: Ein Fehler ist, dass es nur einmal funktioniert. Man kann sich dann zwar wieder trennen mit <br>
 
     batman-connect stop
     
-aber meist funktioniert ein erneutes Verbinden erst nach einem Rechner neustart
-
-Alfred installieren
-===
-http://askubuntu.com/a/426305/34298
+aber meist funktioniert ein erneutes Verbinden erst nach einem Rechner neustart!
