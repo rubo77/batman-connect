@@ -71,7 +71,7 @@ Um sich mit der *ESSID* `02:ca:ff:ee:ba:be` auf der Schnittstelle `wlan0` mit de
 
     /usr/local/bin/batman-connect
 
-[download script](https://raw.githubusercontent.com/ffnord/batman-connect/master/batman-connect)
+[download script](https://raw.githubusercontent.com/rubo77/batman-connect/master/batman-connect)
 
 Achtung
 ---
