@@ -71,7 +71,7 @@ while true; do
 
   DESCRIPTION:
 
-    this script sets the mouse- and touchpad accelleration speed 
+    this script sets the mouse- and touchpad acceleration speed 
     to a relative percentage of the previous speed or to a certain absolute percentage
 
   GLOBAL OPTIONS:
