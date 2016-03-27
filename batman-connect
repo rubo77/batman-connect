@@ -36,7 +36,7 @@ COMMUNITY="ffki"
 VERBOSE=false
 ACTION=start
 
-if [ $# -eq 1 -a $1 == "ffki" ]; then
+if [ $# -eq 1 -a "$1" == "ffki" ]; then
   # If there is only one argument ffki, replace the current process with the new invocation of the script
   # the only option will be used as -c option
   # the community can be the only option directly like
@@ -229,7 +229,7 @@ if [ "$ACTION" == "stop" ]; then
   ifconfig $LAN_IFACE down -promisc
  
   echo "turn wlan iface off"
-  batctl if del $IFACE
+  batctl if del "$IFACE"
   echo "it can take a few minutes until $NETWORKMANAGER gets a new route"
   sleep 5
   echo "you can check connection with 'watch -d ifconfig'"
@@ -238,8 +238,8 @@ elif [ "$ACTION" == "restart" ]; then
   echo '**********************************************************'
   echo "$ACTION"
   echo '**********************************************************'
-  "$0" --stop -i $IFACE
-  "$0" --start -i $IFACE -c $COMMUNITY
+  "$0" --stop -i "$IFACE"
+  "$0" --start -i "$IFACE" -c "$COMMUNITY"
   echo "restart done"
   exit $?
 else # $ACTION == "start"
@@ -255,11 +255,11 @@ else # $ACTION == "start"
   kill $!; trap 'kill $!' SIGTERM
   echo
   echo "turn wlan iface off"
-  ifconfig $IFACE down
+  ifconfig "$IFACE" down
   echo "set maximal transfer unit from standard 1500 to 1528"
-  ifconfig $IFACE mtu 1528
+  ifconfig "$IFACE" mtu 1528
   echo "turn wlan encryption off"
-  iwconfig $IFACE enc off
+  iwconfig "$IFACE" enc off
   echo "start ad-hoc mode"
   # mit HT40 bei 802.11n kann man potentiell auch mit 40MHz breiten kanälen senden, 
   # falls da noch platz ist über oder unter jenem kanal und dann am besten noch HT40- statt HT40+ 
@@ -268,14 +268,14 @@ else # $ACTION == "start"
   #iw dev wlan0 ibss join $ESSID $FREQUENCY fixed-freq HT40- $CELLID
 
   # in case the iw doesent work, use:
-  iwconfig $IFACE mode ad-hoc essid $ESSID ap $CELLID channel $CHANNEL
+  iwconfig "$IFACE" mode ad-hoc essid $ESSID ap $CELLID channel $CHANNEL
   
   echo "load module into kernel"
   modprobe batman-adv
   echo "adding iface to batman"
-  batctl if add $IFACE
+  batctl if add "$IFACE"
   echo "turn wlan iface on"
-  ifconfig $IFACE up
+  ifconfig "$IFACE" up
   echo "turn batman iface on"
   ifconfig bat0 up
   echo "ESSID $ESSID on $IFACE should be ready"
