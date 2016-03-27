@@ -221,7 +221,7 @@ if [ "$ACTION" == "stop" ]; then
   echo "turn network bridge off"
   ifconfig br-freifunk down
   brctl delif br-freifunk bat0
-  if [ LAN_IFACE = "eth0" ]; then
+  if [ $LAN_IFACE = "eth0" ]; then
     brctl delif br-freifunk $LAN_IFACE
   fi
   brctl delbr br-freifunk
