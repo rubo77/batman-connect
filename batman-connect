@@ -71,8 +71,7 @@ while true; do
 
   DESCRIPTION:
 
-    this script sets the mouse- and touchpad acceleration speed 
-    to a relative percentage of the previous speed or to a certain absolute percentage
+    Connect to your Freifunk community as node with your local computer
 
   GLOBAL OPTIONS:
     
