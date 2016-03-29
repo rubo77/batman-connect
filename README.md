@@ -85,7 +85,7 @@ Alfred.json installieren
     make
     sudo make install
     
-Alfred Deamon und batadv-vis installieren (64 Bit)
+Alfred Daemon und batadv-vis installieren (64 Bit)
 
     cd /tmp
     wget http://debian.draic.info/pool/main/a/alfred/alfred_2014.3.0-11_amd64.deb
@@ -95,7 +95,7 @@ Alfred Deamon und batadv-vis installieren (64 Bit)
 
 ODER
 
-Alfred Deamon und batadv-vis installieren (32 Bit)
+Alfred Daemon und batadv-vis installieren (32 Bit)
 
     cd /tmp
     wget https://github.com/rubo77/alfred-repository/raw/master/alfred_2014.3.0-11_i386.deb
