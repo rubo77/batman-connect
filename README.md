@@ -70,7 +70,7 @@ Start-Script erstellen
 Um sich mit der *ESSID* `02:ca:ff:ee:ba:be` auf der Schnittstelle `wlan0` mit der *BSSID* `02:ca:ff:ee:ba:be` zu verbinden erstelle folgendes script und nenne es <br>
 
     cd /usr/local/bin
-    sudo wget https://raw.githubusercontent.com/ffnord/batman-connect/master/batman-connect
+    sudo wget https://raw.githubusercontent.com/rubo77/batman-connect/master/batman-connect
     sudo chmod +x batman-connect
 
 Alfred installieren
